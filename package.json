@@ -1,0 +1,19 @@
+{
+  "name": "average-grade-parser",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^4.0.6",
+    "lodash": "^4.17.11",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "electron-packager": "^13.1.0"
+  }
+}
