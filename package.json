@@ -1,19 +1,25 @@
 {
   "name": "average-grade-parser",
   "version": "1.0.0",
-  "description": "",
+  "description": "simple program that parses the correct average grade from the average grade file of the univerity ulm",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/RINO767/BA-calculator.git"
+  },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "electron-packager": "npx electron-packager",
+    "build-win": "electron-packager . parser --overwrite=true --platform=win32 "
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "electron": "^4.0.6",
     "lodash": "^4.17.11",
     "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
+    "electron": "^4.0.6",
     "electron-packager": "^13.1.0"
   }
 }

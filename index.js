@@ -3,13 +3,26 @@ const pdf = require('pdf-parse');
 const _ = require('lodash');
 
 
-const regex = /^([0-9]*)?([a-zA-Z0-9\-\säöüß]*)?([1-5],[0-9])?(\d?[1-9]|[1-9]0)$/;
+const regex = /^([0-9]*)?([a-zA-Z0-9\-\s\/-:äöüß]*)?([1-5],[0-9])?(\d?[0-9]|[1-9]0)$/;
 const gradeRegEx = /^-?\d+(?:\.\d{0,1})?/;
 
 
-let dataBuffer = fs.readFileSync('Durchschnittsnote.pdf');
- 
-pdf(dataBuffer).then(function(data) {
+if (!process.argv[1]) {
+  console.log('no command line args');
+  process.exit(1);
+}
+
+try {
+  let dataBuffer = fs.readFileSync(process.argv[1]);
+  parse(dataBuffer);
+} catch (e) {
+  console.error('file not found: ',process.argv[1]);
+  console.error(e)
+  process.exit(1);
+}
+
+function parse(dataBuffer) {
+  pdf(dataBuffer).then(function (data) {
     // console.log(data.text); 
 
     const splits = data.text.split('\n');
@@ -23,7 +36,8 @@ pdf(dataBuffer).then(function(data) {
     );
 
     filtered = _.dropRight(_.drop(filtered, 1), 1);
-    
+
+    // filter page break
     let drop = true;
     filtered = filtered.filter(v => {
       if (v.toLowerCase().match('bescheinigung über')) {
@@ -41,28 +55,40 @@ pdf(dataBuffer).then(function(data) {
         const parsed = regex.exec(str);
         // return parsed;
         return {
-            id: parsed[1],
-            name: parsed[2],
-            grade: parseFloat(parsed[3].replace(',', '.')),
-            ects: parseInt(parsed[4])
+          id: parsed[1],
+          name: parsed[2],
+          grade: parseFloat(parsed[3].replace(',', '.')),
+          ects: parseInt(parsed[4])
         };
       });
 
+    const ba = parsedArr.find(module => module.name.toLowerCase().match('bachelorarbeit'));
+
     const result = parsedArr
+      .filter(a => !a.name.toLowerCase().match('bachelorarbeit'))
       .sort((a, b) => {
-        return b.grade < a.grade? 1 : -1; 
+        return b.grade < a.grade ? 1 : -1;
       })
       .reduce((acc, a) => {
-        if(acc.ects >= 90) {
+        if (acc.ects >= 90) {
           return acc;
         }
-        console.log(`${a.name.substr(0, 20)}:\t ${a.grade}\t${a.ects}`);
+        console.log(`${a.grade}\t${a.ects}\t${a.name}`);
         return {
           ects: acc.ects + a.ects,
           grade: acc.grade + a.grade * a.ects
         };
       },
-      {ects: 0, grade: 0.0});
+        { ects: 0, grade: 0.0 });
 
-    console.log(`grade: ${(result.grade / result.ects).toString().match(gradeRegEx)}\tects: ${result.ects}`);
-});
+    if (ba) {
+      result.grade += ba.grade * ba.ects;
+      result.ects += ba.ects;
+      console.log(`${ba.name.substr(0, 20)}:\t ${ba.grade}\t${ba.ects}`);
+    }
+
+    console.log('grade:\t\tects:')
+    console.log(`  ${(result.grade / result.ects).toString().match(gradeRegEx)}\t\t  ${result.ects}`);
+    process.exit(1);
+  });
+}
